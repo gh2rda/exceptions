@@ -60,8 +60,8 @@ public class ExceptionsLesson {
             getStackTraceDeeper(service);
         } catch (Exception e) {
             String str = "";
-            for (int i = 0; i < e.getStackTrace().length; i++) {
-                str += e.getStackTrace()[i].toString();
+            for (StackTraceElement elem : e.getStackTrace()) {
+                str += elem.toString();
             }
             log.log(str);
         }
@@ -122,11 +122,8 @@ public class ExceptionsLesson {
      */
     public static class Thrower {
         public void doIt(int num) throws Exception {
-            try {
-                if (num % 10 == 0) {
-                    throw new Exception(ENDS_WITH_ZERO);
-                }
-            } finally {
+            if (num % 10 == 0) {
+                throw new Exception(ENDS_WITH_ZERO);
             }
         }
 
@@ -177,13 +174,9 @@ public class ExceptionsLesson {
      */
     public String callMe() {
         String caller = null;
-        try {
-            Exception e = new Exception("ой");
-            caller = e.getStackTrace()[1].getMethodName();
-            throw e;
-        } finally {
-            return caller;
-        }
+        Exception e = new Exception("ой");
+        caller = e.getStackTrace()[1].getMethodName();
+        return caller;
     }
 
     /**
@@ -201,7 +194,7 @@ public class ExceptionsLesson {
 
         String data = null;
 
-/*     Вариант 1
+//     Вариант 1
 
         OldSession os = null;
         try {
@@ -210,8 +203,6 @@ public class ExceptionsLesson {
         } catch (IOException e) {
             log.log(e.getMessage());
             data = null;
-        } catch (Exception e) {
-            log.log(e.getMessage());
         } finally {
             try {
                 if (os != null) os.close();
@@ -221,23 +212,24 @@ public class ExceptionsLesson {
         }
         return data;
     }
-*/
+/*
 
 //    Вариант 2
         try {
             OldSession s = c.createSession();
             try {
                 data = s.getData();
-            } catch (IOException  e) {
+            } catch (IOException e) {
                 log.log(e.getMessage());
             } finally {
                 s.close();
             }
-        }catch (IOException e){
+        } catch (IOException e) {
             log.log(e.getMessage());
         }
         return data;
-        }
+    }
+*/
 
 
     /**
@@ -252,13 +244,9 @@ public class ExceptionsLesson {
     public String autocloseResource(Connection c, Logger log) {
         String data = null;
         try (
-                Session s = c.createSession();
+                Session s = c.createSession()
         ) {
-            try {
-                data = s.getData();
-            } catch (IOException e) {
-                log.log(e.getMessage());
-            }
+            data = s.getData();
         } catch (IOException e) {
             log.log(e.getMessage());
         }
@@ -279,7 +267,27 @@ public class ExceptionsLesson {
      */
     public String closeEverything(OldConnectionFactory cf, Logger log) {
         String data = null;
+        OldConnection oc = null;
+        OldSession os = null;
+
         try {
+            oc = cf.createConnection();
+            os = oc.createSession();
+            data = os.getData();
+        } catch (IOException e) {
+            data = null;
+            log.log(e.getMessage());
+        } finally {
+            try {
+                if (os != null) os.close();
+                if (oc != null) oc.close();
+            } catch (IOException e) {
+                log.log(e.getMessage());
+            }
+        }
+
+
+  /*      try {
             OldConnection oc = cf.createConnection();
             try {
                 OldSession os = oc.createSession();
@@ -300,7 +308,7 @@ public class ExceptionsLesson {
         } catch (Exception e) {
             log.log(e.getMessage());
         }
-
+*/
         return data;
     }
 
@@ -317,12 +325,7 @@ public class ExceptionsLesson {
                 Connection oc = cf.createConnection();
                 Session os = oc.createSession();
         ) {
-            try {
             data = os.getData();
-            }catch (IOException e){
-                data = null;
-                log.log(e.getMessage());
-            }
         } catch (Exception e) {
             log.log(e.getMessage());
         }
