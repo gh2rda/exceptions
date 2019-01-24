@@ -280,10 +280,15 @@ public class ExceptionsLesson {
         } finally {
             try {
                 if (os != null) os.close();
+            } catch (IOException e) {
+                log.log(e.getMessage());
+            }
+            try {
                 if (oc != null) oc.close();
             } catch (IOException e) {
                 log.log(e.getMessage());
             }
+
         }
 
 
